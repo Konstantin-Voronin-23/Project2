@@ -36,3 +36,30 @@ def user_interaction():
 
 if __name__ == "__main__":
     user_interaction()
+
+
+# if __name__ == "__main__":
+#     hh_api = HeadHunterAPI()
+#     vacancies = hh_api.load_vacancies('Python', 100, 2)
+#
+#     try:
+#         for vacancy in vacancies:
+#             salary = vacancy['salary']
+#             if salary and salary['from'] is not None and salary['to'] is not None:
+#                 avg_salary = salary['from'] + (salary['to'] - salary['from'] / 2)
+#             elif salary and salary['from'] is not None:
+#                 avg_salary = salary['from']
+#             elif salary and salary['to'] is not None:
+#                 avg_salary = salary['to']
+#             else:
+#                 avg_salary = 0
+#
+#             print(f"Название вакансии: {vacancy['name']}, "
+#                   f"Работадатель: {vacancy['company']}, "
+#                   f"Ссылка : {vacancy['url']}, "
+#                   f"Средняя зарплата: {vacancy['salary']}, "
+#                   f"id : {vacancy['id']}")
+#             print("="*270)
+#
+#     except Exception as error:
+#         print(f"Произошла ошибка : {error}")

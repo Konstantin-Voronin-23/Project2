@@ -12,13 +12,13 @@ class Base_Api(ABC):
         pass
 
     @abstractmethod
-    def get_vacancies(self, keyword: str, per_page: int, page: int):
+    def load_vacancies(self, keyword: str, per_page: int, page: int):
         """Абстроктный метод для получения вакансий по ключевому слову"""
 
         pass
 
 
-class Hh_Api(Base_Api):
+class HeadHunterAPI(Base_Api):
     """Класс для подключения к API сайта HeadHunter"""
 
     BASE_URL = 'https://api.hh.ru/vacancies'
@@ -36,7 +36,7 @@ class Hh_Api(Base_Api):
         return response
 
 
-    def get_vacancies(self, keyword: str, per_page: int, page: int):
+    def load_vacancies(self, keyword: str, per_page: int, page: int):
         """Абстроктный метод для получения вакансий по ключевому слову"""
 
         self._connect()
@@ -61,30 +61,3 @@ class Hh_Api(Base_Api):
             }
             for vacancy in vacancies
         ]
-
-
-if __name__ == "__main__":
-    hh_api = Hh_Api()
-    vacancies = hh_api.get_vacancies('Python', 100, 2)
-
-    try:
-        for vacancy in vacancies:
-            salary = vacancy['salary']
-            if salary and salary['from'] is not None and salary['to'] is not None:
-                avg_salary = salary['from'] + (salary['to'] - salary['from'] / 2)
-            elif salary and salary['from'] is not None:
-                avg_salary = salary['from']
-            elif salary and salary['to'] is not None:
-                avg_salary = salary['to']
-            else:
-                avg_salary = 0
-
-            print(f"Название вакансии: {vacancy['name']}, "
-                  f"Работадатель: {vacancy['company']}, "
-                  f"Ссылка : {vacancy['url']}, "
-                  f"Средняя зарплата: {vacancy['salary']}, "
-                  f"id : {vacancy['id']}")
-            print("="*270)
-
-    except Exception as error:
-        print(f"Произошла ошибка : {error}")
