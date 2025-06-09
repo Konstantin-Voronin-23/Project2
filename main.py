@@ -63,3 +63,24 @@ if __name__ == "__main__":
 #
 #     except Exception as error:
 #         print(f"Произошла ошибка : {error}")
+
+
+# if __name__ == "__main__":
+#     vacancy1 = Vacancy(
+#         title="Python Developer",
+#         url="https://hh.ru/vacancy/123",
+#         salary={"from": 100000, "to": 150000, "currency": "RUR"},
+#         description="Разработка веб-приложений",
+#         requirements="Опыт работы с Python 3+"
+#     )
+#
+#     vacancy2 = Vacancy(
+#         title="Data Scientist",
+#         url="https://hh.ru/vacancy/456",
+#         salary={"from": 120000, "currency": "RUR"},
+#         description="Анализ данных",
+#         requirements="Знание Python, SQL"
+#     )
+#
+#     print(vacancy1)
+#     print(vacancy1 > vacancy2)  # Сравнение по зарплате
