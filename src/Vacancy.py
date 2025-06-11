@@ -49,6 +49,7 @@ class Vacancy:
         return self._requirements
 
     def __str__(self) -> str:
+        """Метод вывода данных пользователю"""
         salary_from = f"от {self._salary['from']}" if self._salary['from'] else ""
         salary_to = f"до {self._salary['to']}" if self._salary['to'] else ""
         salary_currency = self._salary['currency']
@@ -64,29 +65,35 @@ class Vacancy:
                 f"Требования: {self._requirements}")
 
     def __repr__(self) -> str:
+        """Метод вывода данных в консоль"""
         return f"Vacancy(title={self._title!r}, url={self._url!r}, salary={self._salary!r})"
 
     def __eq__(self, other) -> bool:
+        """Проверяет, равна ли средняя зарплата этой вакансии средней зарплате другой вакансии."""
         if not isinstance(other, Vacancy):
             return NotImplemented
         return self.avg_salary == other.avg_salary
 
     def __lt__(self, other) -> bool:
+        """Проверяет, меньше ли средняя зарплата этой вакансии, чем у другой вакансии."""
         if not isinstance(other, Vacancy):
             return NotImplemented
         return self.avg_salary < other.avg_salary
 
     def __le__(self, other) -> bool:
+        """Проверяет, меньше или равна средняя зарплата этой вакансии, чем у другой вакансии."""
         if not isinstance(other, Vacancy):
             return NotImplemented
         return self.avg_salary <= other.avg_salary
 
     def __gt__(self, other) -> bool:
+        """Проверяет, больше ли средняя зарплата этой вакансии, чем у другой вакансии."""
         if not isinstance(other, Vacancy):
             return NotImplemented
         return self.avg_salary > other.avg_salary
 
     def __ge__(self, other) -> bool:
+        """Проверяет, больше или равна средняя зарплата этой вакансии, чем у другой вакансии."""
         if not isinstance(other, Vacancy):
             return NotImplemented
         return self.avg_salary >= other.avg_salary

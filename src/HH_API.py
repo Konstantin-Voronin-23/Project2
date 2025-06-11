@@ -12,7 +12,7 @@ class Base_Api(ABC):
         pass
 
     @abstractmethod
-    def load_vacancies(self, keyword: str, per_page: int, page: int):
+    def load_vacancies(self, keyword, amount):
         """Абстроктный метод для получения вакансий по ключевому слову"""
 
         pass
@@ -36,15 +36,16 @@ class HeadHunterAPI(Base_Api):
         return response
 
 
-    def load_vacancies(self, keyword: str, per_page: int, page: int):
+    def load_vacancies(self, keyword, amount):
         """Абстроктный метод для получения вакансий по ключевому слову"""
 
         self._connect()
 
         params = {
             'text': keyword,
-            'per_page': per_page,
-            'page': page
+            'per_page': amount,
+            'page': 1,
+            'area': 1
         }
 
         response = self.__session.get(self.BASE_URL, params=params)
@@ -54,10 +55,11 @@ class HeadHunterAPI(Base_Api):
         return [
             {
                 'name': vacancy['name'],
-                'company': vacancy['employer']['name'],
-                'url': vacancy['alternate_url'],
                 'salary': vacancy['salary'],
-                'id': vacancy['id']
+                'url': vacancy['url'],
+                'description': vacancy['snippet']['responsibility'],
+                'city': vacancy['area']['name']
+
             }
             for vacancy in vacancies
         ]

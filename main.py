@@ -1,86 +1,95 @@
+from src.HH_API import HeadHunterAPI
+from src.File_Handler import FileHandlerJson
 
 
-# Создание экземпляра класса для работы с API сайтов с вакансиями
-hh_api = HeadHunterAPI()
-
-# Получение вакансий с hh.ru в формате JSON
-hh_vacancies = hh_api.get_vacancies("Python")
-
-# Преобразование набора данных из JSON в список объектов
-vacancies_list = Vacancy.cast_to_object_list(hh_vacancies)
-
-# Пример работы контструктора класса с одной вакансией
-vacancy = Vacancy("Python Developer", "<https://hh.ru/vacancy/123456>", "100 000-150 000 руб.", "Требования: опыт работы от 3 лет...")
-
-# Сохранение информации о вакансиях в файл
-json_saver = JSONSaver()
-json_saver.add_vacancy(vacancy)
-json_saver.delete_vacancy(vacancy)
-
-# Функция для взаимодействия с пользователем
 def user_interaction():
-    platforms = ["HeadHunter"]
-    search_query = input("Введите поисковый запрос: ")
-    top_n = int(input("Введите количество вакансий для вывода в топ N: "))
-    filter_words = input("Введите ключевые слова для фильтрации вакансий: ").split()
-    salary_range = input("Введите диапазон зарплат: ") # Пример: 100000 - 150000
+    hh_api = HeadHunterAPI()
+    file_handler = FileHandlerJson()
 
-    filtered_vacancies = filter_vacancies(vacancies_list, filter_words)
+    while True:
+        print("\nВыберете действие: ")
+        print("1. Поиск вакансий по ключевому слову")
+        print("2. Получить топ N вакансий по зарплате")
+        print("3. Получить вакансии с ключевым словом из файла")
+        print("4. Запись вакансий в файл")
+        print("0. Выход")
 
-    ranged_vacancies = get_vacancies_by_salary(filtered_vacancies, salary_range)
+        choice = input("Выберете действие: ")
 
-    sorted_vacancies = sort_vacancies(ranged_vacancies)
-    top_vacancies = get_top_vacancies(sorted_vacancies, top_n)
-    print_vacancies(top_vacancies)
+        if choice == '1':
+            keyword = input("Введите ключевое слово для поиска: ")
+            amount = input("Введите количество вакансий для получения: ")
+
+            try:
+                vacancies = hh_api.load_vacancies(keyword, amount)
+                print(vacancies)
+            except Exception as error:
+                print(f"произошла ошибка {error}")
+        elif choice == '2':
+            n = int(input("Введите количество вакансий для получения: "))
+            vacancies = file_handler.get_vacancies()
+
+            vacancies_with_salary = [
+                vac for vac in vacancies
+                if vac.get('salary') and isinstance(vac['salary'], dict)
+                   and (vac['salary'].get('from') is not None or vac['salary'].get('to') is not None)
+            ]
+            sorted_vacancies = sorted(
+                vacancies_with_salary,
+                key=lambda x: max(
+                    x['salary'].get('to', 0) or x['salary'].get('from', 0),
+                    x['salary'].get('from', 0)
+                ),
+                reverse=True
+            )[:n]
+
+            if sorted_vacancies:
+                for vacancy in sorted_vacancies:
+                    area = vacancy.get('area', {})
+                    city = area.get('name', 'Не указан') if isinstance(area, dict) else str(area)
+
+                    salary = vacancy['salary']
+                    salary_from = salary.get('from', '?')
+                    salary_to = salary.get('to', '?')
+                    currency = salary.get('currency', '')
+                    gross = "(до вычета налогов)" if salary.get('gross') else "(на руки)"
+
+                    print(f"""
+                                Название: {vacancy['name']}
+                                Город: {city}
+                                Зарплата: {salary_from} - {salary_to} {currency} {gross}
+                                Ссылка: {vacancy['url']}
+                                """)
+            else:
+                print("Вакансий не найдено")
+        elif choice == '3':
+            keyword = input("Введите ключевое слово для поиска в файле: ")
+            vacancies = file_handler.get_vacancies(name=keyword)
+            if vacancies:
+                for vacancy in vacancies:
+                    area = vacancy.get('area', {})
+                    city = area.get('name', 'Не указан') if isinstance(area, dict) else str(area)
+
+                    salary = vacancy['salary']
+                    salary_from = salary.get('from', '?')
+                    salary_to = salary.get('to', '?')
+                    currency = salary.get('currency', '')
+                    gross = "(до вычета налогов)" if salary.get('gross') else "(на руки)"
+
+                    print(f"""
+                                Название: {vacancy['name']}
+                                Город: {city}
+                                Зарплата: {salary_from} - {salary_to} {currency} {gross}
+                                Ссылка: {vacancy['url']}
+                                """)
+            else:
+                print("Вакансий не найдено")
+
+        elif choice == '0':
+            print("Выход из программы")
+            break
+
 
 
 if __name__ == "__main__":
     user_interaction()
-
-
-# if __name__ == "__main__":
-#     hh_api = HeadHunterAPI()
-#     vacancies = hh_api.load_vacancies('Python', 100, 2)
-#
-#     try:
-#         for vacancy in vacancies:
-#             salary = vacancy['salary']
-#             if salary and salary['from'] is not None and salary['to'] is not None:
-#                 avg_salary = salary['from'] + (salary['to'] - salary['from'] / 2)
-#             elif salary and salary['from'] is not None:
-#                 avg_salary = salary['from']
-#             elif salary and salary['to'] is not None:
-#                 avg_salary = salary['to']
-#             else:
-#                 avg_salary = 0
-#
-#             print(f"Название вакансии: {vacancy['name']}, "
-#                   f"Работадатель: {vacancy['company']}, "
-#                   f"Ссылка : {vacancy['url']}, "
-#                   f"Средняя зарплата: {vacancy['salary']}, "
-#                   f"id : {vacancy['id']}")
-#             print("="*270)
-#
-#     except Exception as error:
-#         print(f"Произошла ошибка : {error}")
-
-
-# if __name__ == "__main__":
-#     vacancy1 = Vacancy(
-#         title="Python Developer",
-#         url="https://hh.ru/vacancy/123",
-#         salary={"from": 100000, "to": 150000, "currency": "RUR"},
-#         description="Разработка веб-приложений",
-#         requirements="Опыт работы с Python 3+"
-#     )
-#
-#     vacancy2 = Vacancy(
-#         title="Data Scientist",
-#         url="https://hh.ru/vacancy/456",
-#         salary={"from": 120000, "currency": "RUR"},
-#         description="Анализ данных",
-#         requirements="Знание Python, SQL"
-#     )
-#
-#     print(vacancy1)
-#     print(vacancy1 > vacancy2)  # Сравнение по зарплате
