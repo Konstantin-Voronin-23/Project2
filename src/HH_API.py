@@ -1,65 +1,76 @@
 from abc import ABC, abstractmethod
 import requests
+from config import USER_AGENT
+import os
 
 
-class Base_Api(ABC):
+script_dir = os.path.dirname(os.path.abspath(__file__))
+path_to_json = os.path.join(script_dir, "../data/vacancy_hh.json")
+
+
+class BaseApi(ABC):
     """Базовый абстрактный класс для подключения к API"""
 
+    @property
     @abstractmethod
-    def _connect(self):
-        """Абстрактный метод для подключения к API"""
+    def url(self) -> str:
+        """Метод получение приватного атрибута url"""
+        pass
 
+    @property
+    @abstractmethod
+    def headers(self) -> dict:
+        """Метод получение приватного атрибута headers"""
         pass
 
     @abstractmethod
-    def load_vacancies(self, keyword, amount):
-        """Абстроктный метод для получения вакансий по ключевому слову"""
-
+    def get_vacancies(self, text) -> list:
+        """Метод получение приватного атрибута vacancies"""
         pass
 
 
-class HeadHunterAPI(Base_Api):
-    """Класс для подключения к API сайта HeadHunter"""
+class HeadHunterAPI(BaseApi):
+    """Метод запроса через API"""
 
-    BASE_URL = 'https://api.hh.ru/vacancies'
+    def __init__(self) -> None:
+        self.__url = "https://api.hh.ru/vacancies"
+        self.__headers = {"User-Agent": USER_AGENT}
+        self.__vacancies = []
 
-    def __init__(self):
-        """Метод иниуиализации"""
-        self.__session = None
+    @property
+    def url(self) -> str:
+        """Метод получение приватного атрибута url"""
+        return self.__url
 
-    def _connect(self):
-        """Абстрактный метод для подключения к API"""
+    @property
+    def headers(self) -> dict:
+        """Метод получение приватного атрибута headers"""
+        return self.__headers
 
-        self.__session = requests.Session()
-        response = self.__session.get(self.BASE_URL)
-        response.raise_for_status()
-        return response
+    @property
+    def vacancies(self) -> list:
+        """Метод получение приватного атрибута vacancies"""
+        return self.__vacancies
 
+    def __response_check(self) -> bool:
+        """Проверяет доступность API - для внутренних методов"""
+        try:
+            response = requests.get(self.url, timeout=5)
+            response.raise_for_status()  # if status_code == 200
+            return True
+        except requests.exceptions.RequestException:
+            return False
 
-    def load_vacancies(self, keyword, amount):
-        """Абстроктный метод для получения вакансий по ключевому слову"""
+    def get_vacancies(self, text: str, per_page: int = 10) -> list[dict]:
+        """Получает вакансии из API"""
+        if not self.__response_check():
+            raise ConnectionError("API недоступно. Невозможно получить вакансии.")
 
-        self._connect()
-
-        params = {
-            'text': keyword,
-            'per_page': amount,
-            'page': 1,
-            'area': 1
-        }
-
-        response = self.__session.get(self.BASE_URL, params=params)
-        response.raise_for_status()
-        vacancies = response.json().get('items', [])
-
-        return [
-            {
-                'name': vacancy['name'],
-                'salary': vacancy['salary'],
-                'url': vacancy['url'],
-                'description': vacancy['snippet']['responsibility'],
-                'city': vacancy['area']['name']
-
-            }
-            for vacancy in vacancies
-        ]
+        params = {"text": text, "per_page": per_page}
+        try:
+            response = requests.get(self.url, headers=self.headers, params=params)
+            response.raise_for_status()
+            self.__vacancies = response.json().get("items", [])
+            return self.__vacancies
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Ошибка при выполнении запроса: {e}") from e

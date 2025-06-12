@@ -2,7 +2,7 @@ import json
 from typing import Dict, List
 
 
-def read_json_file(filename: str) -> List[Dict]:
+def json_load(filename: str) -> List[Dict]:
     """Функция для чтения json файла с операциями транзакций"""
     try:
         with open(filename, "r", encoding="utf-8") as file:

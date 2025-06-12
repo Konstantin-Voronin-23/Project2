@@ -1,83 +1,207 @@
 import json
-from abc import abstractmethod, ABC
 import os
+import re
+from typing import Union
+from src.Vacancy import Vacancy
+from abc import ABC, abstractmethod
 
 
-class FileHandler(ABC):
-    """Класс для работы с файлами"""
+class BaseFile(ABC):
+    """Абстрактный класс для работы с файлами и данными"""
 
-    def __init__(self, filename):
-        """Метод инициализации"""
-        self.__filename = filename
+    @property
+    @abstractmethod
+    def filepath(self):
+        """Метод получение приватного атрибута filepath"""
+        pass
 
     @abstractmethod
-    def get_vacancies(self, **criteria):
-        """Получение вакансий из json файла"""
+    def save_to_json(self, vacancies):
+        """Абстрактный метод загрузки сохранения в json"""
+        pass
+
+    @abstractmethod
+    def load_from_json(self):
+        """Абстрактный метод загрузки данных из json"""
+        pass
+
+    @abstractmethod
+    def add_vacancy(self, vacancy):
+        """Абстрактный метод добавления вакансий"""
+        pass
+
+    @abstractmethod
+    def delete_vacancy_by_id(self, id):
+        """Абстрактный метод удаления вакансий по критерию"""
+        pass
+
+    @abstractmethod
+    def search_vacancies_by_keyword(self, keyword):
+        """Абстрактный метод поиска вакансии по ключевому слову"""
+        pass
+
+    @abstractmethod
+    def filter_vacancies_by_keyword(self, keyword):
+        """Абстрактный Метод фильтрации вакансии по ключевому слову"""
+        pass
+
+    @abstractmethod
+    def filter_vacancies_by_salary_range(self, salary_range):
+        """Абстрактный Метод фильтрации вакансии по диапазону зарплат"""
         pass
 
 
-class FileHandlerJson(FileHandler):
-    """Класс для работы с json файлом"""
+class FileHandlerJson(BaseFile):
+    """Класс для сохранения и загрузки данных о вакансиях в/из JSON-файла."""
 
-    def __init__(self, filename='./data/vacancies.json'):
-        super().__init__(filename)
-        self._filename = filename
+    def __init__(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.__filepath = os.path.join(script_dir, "../data/vacancies_hh.json")
+        os.makedirs(os.path.dirname(self.__filepath), exist_ok=True)
 
-    def get_vacancies(self, **criteria):
-        """Получение вакансий из json файла с фильтрацией по критериям."""
-        if not os.path.exists(self._FileHandler__filename):
+    @property
+    def filepath(self):
+        """Метод получение приватного атрибута filepath"""
+        return self.__filepath
+
+    def _write_to_file(self, data: list) -> None:
+        """Защищеный метод записи в файл"""
+        try:
+            with open(self.filepath, "w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+            print("Данные успешно записаны в файл.")
+        except Exception as e:
+            raise IOError(f"Ошибка при записи в файл: {e}")
+
+    def save_to_json(self, vacancies: list) -> None:
+        """Метод сохранения данных в json"""
+        try:
+            if isinstance(vacancies[0], Vacancy):
+                data = [vacancy.to_dict() for vacancy in vacancies]
+            else:
+                data = vacancies
+            print("Пример данных для записи:", data[:2])
+            self._write_to_file(data)
+            print(f"Данные успешно сохранены в {self.filepath}")
+        except Exception as e:
+            print(f"Ошибка при сохранении данных в JSON: {e}")
+
+    def load_from_json(self) -> list:
+        """Метод загрузки данных в json"""
+        try:
+            with open(self.filepath, "r", encoding="utf-8") as file:
+                data = json.load(file)
+                return data
+        except FileNotFoundError:
+            print(f"Файл {self.filepath} не найден.")
             return []
+        except json.JSONDecodeError:
+            print(f"Ошибка чтения JSON из файла {self.filepath}.")
+            return []
+
+    def clear_file(self) -> None:
+        """Метод полной чистки файла"""
+        try:
+            with open(self.filepath, "w", encoding="utf-8") as file:
+                file.write("[]")
+            print(f"Файл {self.filepath} очищен.")
+        except Exception as e:
+            print(f"Ошибка при очистке файла: {e}")
+
+    def add_vacancy(self, vacancy: Union[Vacancy, dict]) -> None:
+        """Метод добавления вакансий в файл"""
+        current_data = self.load_from_json()  # Теперь это список словарей
+
+        if isinstance(vacancy, Vacancy):
+            vacancy_dict = vacancy.to_dict()
+        elif isinstance(vacancy, dict):
+            vacancy_dict = vacancy
+        else:
+            raise ValueError("Можно добавлять только объект Vacancy или словарь.")
+
+        existing_id = {item["id"] for item in current_data}
+        if vacancy_dict["id"] in existing_id:
+            print("Вакансия с такой ссылкой уже существует. Дубликат не добавлен.")
+            return
+
+        current_data.append(vacancy_dict)
 
         try:
-            with open(self._filename, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
-            print(f"Ошибка при чтении файла: {e}")
-            return []
+            self._write_to_file(current_data)
+            print("Новая вакансия успешно добавлена.")
+        except IOError as e:
+            print(e)
 
-        vacancies = data.get('items', data) if isinstance(data, dict) else data
+    def delete_vacancy_by_id(self, id: str) -> None:
+        """Метод удаления вакансии по ID"""
+        data = self.load_from_json()
+        filtered_data = [item for item in data if item.get("id") != id]
 
-        if not isinstance(vacancies, list):
-            return []
+        if len(data) == len(filtered_data):
+            print(f"Вакансия с ссылкой {id} не найдена.")
+        else:
+            self._write_to_file(filtered_data)
+            print(f"Вакансия с ссылкой {id} успешно удалена.")
 
-        if not criteria:
-            return vacancies
+    def search_vacancies_by_keyword(self, keyword: str) -> list:
+        """
+        Ищет вакансии по ключевому слову во всех полях: name, description, area.
+        """
+        data = self.load_from_json()
+        pattern = re.compile(keyword, re.IGNORECASE)
 
-        filtered_vacancies = []
-        for vacancy in vacancies:
-            if not isinstance(vacancy, dict):
-                continue
+        result = [
+            item
+            for item in data
+            if pattern.search(item.get("name", ""))
+            or pattern.search(item.get("description", ""))
+            or pattern.search(item.get("area", ""))
+        ]
 
-            match = True
-            for key, value in criteria.items():
-                if vacancy.get(key) != value:
-                    match = False
-                    break
+        print(f"Найдено {len(result)} вакансий по ключевому слову '{keyword}'.")
+        return result
 
-            if match:
-                filtered_vacancies.append(vacancy)
+    def filter_vacancies_by_keyword(self, keyword: str) -> list[Vacancy]:
+        """Фильтр вакансий по критериям"""
+        data = self.load_from_json()
+        pattern = re.compile(keyword, re.IGNORECASE)
 
-        return filtered_vacancies
+        filtered_data = [
+            item
+            for item in data
+            if pattern.search(item.get("name", ""))
+            or pattern.search(item.get("description", ""))
+            or pattern.search(item.get("area", ""))
+        ]
 
-    def add_vacancy(self, vacancy):
-        """Добавление вакансии в json файл"""
+        result = Vacancy.cast_to_object_list(filtered_data)
+        print(f"Отфильтровано {len(result)} вакансий по ключевому слову '{keyword}'.")
+        return result
 
-        vacancies = self.get_vacancies()
-        if not any(v == vacancy for v in vacancies):
-            vacancies.append(vacancy)
-            self.save_vacancies(vacancies)
-            return True
-        return False
+    def filter_vacancies_by_salary_range(self, salary_range: str) -> list[Vacancy]:
+        """Фильтр по воронке ЗП"""
+        try:
+            min_salary, max_salary = map(int, salary_range.split("-"))
+        except ValueError:
+            raise ValueError("Диапазон зарплат должен быть в формате 'мин-макс', например '50000-100000'.")
 
-    def delete_vacancy(self, vacancy):
-        """Удаление вакансий из json файла"""
+        data = self.load_from_json()
+        filtered_data = []
 
-        vacancies = self.get_vacancies()
+        for item in data:
+            salary_from = item.get("salary_from", 0)
+            salary_to = item.get("salary_to", 0)
 
-        initial_length = len(vacancies)
-        vacancies = [v for v in vacancies if v != vacancy]
+            if (salary_from and min_salary <= salary_from <= max_salary) or (
+                salary_to and min_salary <= salary_to <= max_salary
+            ):
+                filtered_data.append(item)
 
-        if len(vacancies) < initial_length:
-            self.save_vacancies(vacancies)
-            return True
-        return False
+        result = Vacancy.cast_to_object_list(filtered_data)
+        print(f"Отфильтровано {len(result)} вакансий по диапазону зарплат {salary_range}.")
+        return result
+
+    def load_vacancies(self) -> list[Vacancy]:
+        """Загружает вакансии и возвращает их как объекты Vacancy"""
+        data = self.load_from_json()
+        return Vacancy.cast_to_object_list(data)

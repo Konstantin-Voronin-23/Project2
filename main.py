@@ -1,94 +1,73 @@
 from src.HH_API import HeadHunterAPI
 from src.File_Handler import FileHandlerJson
+from src.Vacancy import Vacancy
 
 
 def user_interaction():
+    """Функция для взаимодействия с пользователем."""
+    print("Добро пожаловать в приложение по поиску вакансий!")
+
+    search_query = input("Введите поисковый запрос: ")
+    top_n = int(input("Введите количество вакансий для загрузки: "))
+    filter_words = input(
+        "Введите ключевые слова для фильтрации через пробел или оставьте пустым: "
+    ).split()
+    salary_range_input = input("Введите диапазон зарплат или оставьте пустым: ")
+
     hh_api = HeadHunterAPI()
-    file_handler = FileHandlerJson()
+    vacancy = hh_api.get_vacancies(search_query, per_page=top_n)
+
+    vacancies_list = Vacancy.cast_to_object_list(vacancy)
+    print(f"Загружено {len(vacancies_list)} вакансий.")
+
+    saver = FileHandlerJson()
+    saver.save_to_json(vacancies_list)
+
+    if filter_words:
+        keyword_query = " ".join(filter_words)
+        print(f"\n=== Фильтрация по ключевым словам: '{keyword_query}' ===")
+        filtered_by_keyword = saver.filter_vacancies_by_keyword(keyword_query)
+        for v in filtered_by_keyword:
+            print(v)
+
+    if salary_range_input:
+        print(f"\n=== Фильтрация по зарплате: {salary_range_input} ===")
+        try:
+            filtered_by_salary = saver.filter_vacancies_by_salary_range(salary_range_input)
+            for v in filtered_by_salary:
+                print(v)
+        except ValueError as e:
+            print(e)
+
+    print("\n=== Все вакансии после обработки ===")
+    all_vacancies = saver.load_vacancies()
+    for v in all_vacancies:
+        print(v)
 
     while True:
-        print("\nВыберете действие: ")
-        print("1. Поиск вакансий по ключевому слову")
-        print("2. Получить топ N вакансий по зарплате")
-        print("3. Получить вакансии с ключевым словом из файла")
-        print("4. Запись вакансий в файл")
-        print("0. Выход")
-
-        choice = input("Выберете действие: ")
-
-        if choice == '1':
-            keyword = input("Введите ключевое слово для поиска: ")
-            amount = input("Введите количество вакансий для получения: ")
-
-            try:
-                vacancies = hh_api.load_vacancies(keyword, amount)
-                print(vacancies)
-            except Exception as error:
-                print(f"произошла ошибка {error}")
-        elif choice == '2':
-            n = int(input("Введите количество вакансий для получения: "))
-            vacancies = file_handler.get_vacancies()
-
-            vacancies_with_salary = [
-                vac for vac in vacancies
-                if vac.get('salary') and isinstance(vac['salary'], dict)
-                   and (vac['salary'].get('from') is not None or vac['salary'].get('to') is not None)
-            ]
-            sorted_vacancies = sorted(
-                vacancies_with_salary,
-                key=lambda x: max(
-                    x['salary'].get('to', 0) or x['salary'].get('from', 0),
-                    x['salary'].get('from', 0)
-                ),
-                reverse=True
-            )[:n]
-
-            if sorted_vacancies:
-                for vacancy in sorted_vacancies:
-                    area = vacancy.get('area', {})
-                    city = area.get('name', 'Не указан') if isinstance(area, dict) else str(area)
-
-                    salary = vacancy['salary']
-                    salary_from = salary.get('from', '?')
-                    salary_to = salary.get('to', '?')
-                    currency = salary.get('currency', '')
-                    gross = "(до вычета налогов)" if salary.get('gross') else "(на руки)"
-
-                    print(f"""
-                                Название: {vacancy['name']}
-                                Город: {city}
-                                Зарплата: {salary_from} - {salary_to} {currency} {gross}
-                                Ссылка: {vacancy['url']}
-                                """)
-            else:
-                print("Вакансий не найдено")
-        elif choice == '3':
-            keyword = input("Введите ключевое слово для поиска в файле: ")
-            vacancies = file_handler.get_vacancies(name=keyword)
-            if vacancies:
-                for vacancy in vacancies:
-                    area = vacancy.get('area', {})
-                    city = area.get('name', 'Не указан') if isinstance(area, dict) else str(area)
-
-                    salary = vacancy['salary']
-                    salary_from = salary.get('from', '?')
-                    salary_to = salary.get('to', '?')
-                    currency = salary.get('currency', '')
-                    gross = "(до вычета налогов)" if salary.get('gross') else "(на руки)"
-
-                    print(f"""
-                                Название: {vacancy['name']}
-                                Город: {city}
-                                Зарплата: {salary_from} - {salary_to} {currency} {gross}
-                                Ссылка: {vacancy['url']}
-                                """)
-            else:
-                print("Вакансий не найдено")
-
-        elif choice == '0':
-            print("Выход из программы")
+        sort_choice = input("\nХотите отсортировать вакансии по зарплате? (да/нет): ").lower()
+        if sort_choice == "нет":
+            print("Сортировка не совершена")
             break
+        elif sort_choice == "да":
+            while True:
+                reverse_choice = input("Сортировать по возрастанию (в) или убыванию (у)? ").lower()
+                if reverse_choice == "в":
+                    reverse = False
+                    break
+                elif reverse_choice == "у":
+                    reverse = True
+                    break
+                else:
+                    print("Введите пожалуйста только 'в' (возрастание) или 'y' (убывание)!")
 
+            sorted_vacancies = Vacancy.sort_vacancies_by_salary(all_vacancies, reverse=reverse)
+            print("\n=== Отсортированные вакансии ===")
+            for v in sorted_vacancies:
+                print(v)
+            break
+        else:
+            print("Введите пожалуйста только 'да' или 'нет'!")
 
 
 if __name__ == "__main__":
