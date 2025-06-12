@@ -13,6 +13,6 @@ def json_load(filename: str) -> List[Dict]:
     except FileNotFoundError as error:
         print(f"Ошибка: файл {error.filename} не найден! ")
         return []
-    except json.JSONDecodeError as error:
+    except json.JSONDecodeError:
         print(f"Ошибка: файл {filename} содержит некорректный JSON! ")
         return []

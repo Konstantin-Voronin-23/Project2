@@ -1,8 +1,9 @@
-from src.HH_API import BaseApi, HeadHunterAPI
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import requests
-from config import USER_AGENT
+
+from src.HH_API import BaseApi, HeadHunterAPI
 
 
 class TestBaseApi(unittest.TestCase):
@@ -80,6 +81,7 @@ class TestHeadHunterAPI(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.api.get_vacancies("Python")
+
 
 def test_url_property(hh_api):
     """Тест для свойства url"""

@@ -1,9 +1,10 @@
 import json
 import os
 import re
-from typing import Union
-from src.Vacancy import Vacancy
 from abc import ABC, abstractmethod
+from typing import Union
+
+from src.Vacancy import Vacancy
 
 
 class BaseFile(ABC):

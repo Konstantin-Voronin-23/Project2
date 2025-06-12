@@ -1,7 +1,7 @@
-import unittest
 import json
 import os
-from typing import List, Dict
+import unittest
+
 from src.utils import json_load
 
 

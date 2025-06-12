@@ -1,8 +1,9 @@
-from abc import ABC, abstractmethod
-import requests
-from config import USER_AGENT
 import os
+from abc import ABC, abstractmethod
 
+import requests
+
+from config import USER_AGENT
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 path_to_json = os.path.join(script_dir, "../data/vacancy_hh.json")

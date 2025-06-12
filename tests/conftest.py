@@ -1,4 +1,5 @@
 import pytest
+
 from src.HH_API import HeadHunterAPI
 
 

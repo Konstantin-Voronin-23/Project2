@@ -1,5 +1,5 @@
-from src.HH_API import HeadHunterAPI
 from src.File_Handler import FileHandlerJson
+from src.HH_API import HeadHunterAPI
 from src.Vacancy import Vacancy
 
 

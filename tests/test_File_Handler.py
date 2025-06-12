@@ -1,11 +1,13 @@
-import os
-import pytest
-import unittest
-import tempfile
-import shutil
 import json
-from src.Vacancy import Vacancy
+import os
+import shutil
+import tempfile
+import unittest
+
+import pytest
+
 from src.File_Handler import FileHandlerJson
+from src.Vacancy import Vacancy
 
 
 class TestFileHandlerJson(unittest.TestCase):
@@ -175,7 +177,7 @@ def test_save_to_json_with_vacancy_objects(tmp_path):
         name="Test",
         salary={"from": 1000, "to": 2000},
         description="Test description",
-        area = "Test area"
+        area="Test area"
     )
 
     file_handler.save_to_json([vacancy])

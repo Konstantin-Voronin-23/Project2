@@ -1,5 +1,5 @@
 import unittest
-from typing import Dict, Any
+
 from src.Vacancy import Vacancy
 
 
