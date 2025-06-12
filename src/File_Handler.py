@@ -55,6 +55,7 @@ class FileHandlerJson(BaseFile):
     """Класс для сохранения и загрузки данных о вакансиях в/из JSON-файла."""
 
     def __init__(self):
+        """Метод инициализации класса"""
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.__filepath = os.path.join(script_dir, "../data/vacancies_hh.json")
         os.makedirs(os.path.dirname(self.__filepath), exist_ok=True)
@@ -110,7 +111,7 @@ class FileHandlerJson(BaseFile):
 
     def add_vacancy(self, vacancy: Union[Vacancy, dict]) -> None:
         """Метод добавления вакансий в файл"""
-        current_data = self.load_from_json()  # Теперь это список словарей
+        current_data = self.load_from_json()
 
         if isinstance(vacancy, Vacancy):
             vacancy_dict = vacancy.to_dict()
@@ -145,7 +146,7 @@ class FileHandlerJson(BaseFile):
 
     def search_vacancies_by_keyword(self, keyword: str) -> list:
         """
-        Ищет вакансии по ключевому слову во всех полях: name, description, area.
+        Метод поиска вакансии по ключевому слову во всех полях: name, description, area.
         """
         data = self.load_from_json()
         pattern = re.compile(keyword, re.IGNORECASE)
@@ -162,7 +163,7 @@ class FileHandlerJson(BaseFile):
         return result
 
     def filter_vacancies_by_keyword(self, keyword: str) -> list[Vacancy]:
-        """Фильтр вакансий по критериям"""
+        """Метод фильтрации вакансий по критериям"""
         data = self.load_from_json()
         pattern = re.compile(keyword, re.IGNORECASE)
 
@@ -179,7 +180,7 @@ class FileHandlerJson(BaseFile):
         return result
 
     def filter_vacancies_by_salary_range(self, salary_range: str) -> list[Vacancy]:
-        """Фильтр по воронке ЗП"""
+        """Метод фильтрации по диапозону ЗП"""
         try:
             min_salary, max_salary = map(int, salary_range.split("-"))
         except ValueError:
@@ -202,6 +203,6 @@ class FileHandlerJson(BaseFile):
         return result
 
     def load_vacancies(self) -> list[Vacancy]:
-        """Загружает вакансии и возвращает их как объекты Vacancy"""
+        """Метод загружает вакансии и возвращает их как объекты Vacancy"""
         data = self.load_from_json()
         return Vacancy.cast_to_object_list(data)

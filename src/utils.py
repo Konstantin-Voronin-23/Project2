@@ -3,7 +3,7 @@ from typing import Dict, List
 
 
 def json_load(filename: str) -> List[Dict]:
-    """Функция для чтения json файла с операциями транзакций"""
+    """Функция для чтения json файла"""
     try:
         with open(filename, "r", encoding="utf-8") as file:
             data = json.load(file)

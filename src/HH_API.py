@@ -30,7 +30,7 @@ class BaseApi(ABC):
 
 
 class HeadHunterAPI(BaseApi):
-    """Метод запроса через API"""
+    """Класс запроса через API"""
 
     def __init__(self) -> None:
         """Метод инициализации класса"""
@@ -63,7 +63,7 @@ class HeadHunterAPI(BaseApi):
             return False
 
     def get_vacancies(self, text: str, per_page: int = 10) -> list[dict]:
-        """Получает вакансии из API"""
+        """Метод получает вакансии из API"""
         if not self.__response_check():
             raise ConnectionError("API недоступно. Невозможно получить вакансии.")
 

@@ -98,7 +98,7 @@ class Vacancy:
 
     @staticmethod
     def cast_to_object_list(data: List[Dict[str, Any]]) -> List["Vacancy"]:
-        """Преобразует список JSON-объектов в список объектов Vacancy."""
+        """Метод преобразует список JSON-объектов в список объектов Vacancy."""
         vacancy_list = []
 
         for item in data:
@@ -125,11 +125,11 @@ class Vacancy:
 
     @staticmethod
     def sort_vacancies_by_salary(vacancies: list["Vacancy"], reverse: bool = True) -> list["Vacancy"]:
-        """Сортировка списка вакансий по зарплате (по возрастанию или убыванию)"""
+        """Метод сортировки списка вакансий по зарплате (по возрастанию или убыванию)"""
         return sorted(vacancies, key=lambda v: v.salary_from, reverse=reverse)
 
     def to_dict(self) -> dict:
-        """Преобразует объект Vacancy в словарь для сериализации в JSON"""
+        """Метод преобразует объект Vacancy в словарь для сериализации в JSON"""
         return {
             "name": self.name,
             "id": self.id,
@@ -142,7 +142,7 @@ class Vacancy:
 
     @staticmethod
     def load_from_json(filename: str) -> List["Vacancy"]:
-        """Загружает список вакансий из JSON-файла обратно в объекты Vacancy"""
+        """Метод Загружает список вакансий из JSON-файла обратно в объекты Vacancy"""
         try:
             data = json_load(filename)
 
