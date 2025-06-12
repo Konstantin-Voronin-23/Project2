@@ -28,8 +28,8 @@ class Vacancy:
         else:
             self.area = area or "Не указано"
 
-        self.__salary = salary
-        self.description = description
+        self.__salary = salary or {}
+        self.description = description or ""
         self.salary_from = self.__salary_from()
         self.salary_to = self.__salary_to()
 
@@ -106,7 +106,7 @@ class Vacancy:
                 name = item.get("name")
                 id = item.get("id")
 
-                area = item.get("area", {})  # передаем весь объект area
+                area = item.get("area", {})
 
                 snippet = item.get("snippet", {})
                 responsibility = snippet.get("responsibility")
@@ -114,7 +114,6 @@ class Vacancy:
 
                 salary = item.get("salary", {})
 
-                # Создание объекта Vacancy
                 vacancy = Vacancy(name=name, id=id, area=area, salary=salary, description=description)
                 vacancy_list.append(vacancy)
 

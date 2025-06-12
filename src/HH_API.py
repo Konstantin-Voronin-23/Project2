@@ -33,6 +33,7 @@ class HeadHunterAPI(BaseApi):
     """Метод запроса через API"""
 
     def __init__(self) -> None:
+        """Метод инициализации класса"""
         self.__url = "https://api.hh.ru/vacancies"
         self.__headers = {"User-Agent": USER_AGENT}
         self.__vacancies = []
